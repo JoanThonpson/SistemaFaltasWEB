@@ -1,0 +1,365 @@
+/* ============================================
+   CSS DO LOGIN PAGE
+   Autor: Joan Thompson
+   ============================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    color: #333;
+}
+
+/* CONTAINER PRINCIPAL - TAMANHO FIXO */
+.login-container {
+    width: 100%;
+    max-width: 400px; /* Tamanho reduzido */
+    margin: 0 auto;
+    padding: 0;
+}
+
+/* CABEÇALHO COM LOGO */
+.login-header {
+    text-align: center;
+    margin-bottom: 25px;
+    padding: 0 10px;
+}
+
+.login-header i {
+    color: #0d6efd;
+    font-size: 2.8rem; /* Tamanho reduzido */
+    margin-bottom: 10px;
+}
+
+.login-header h2 {
+    font-size: 1.5rem; /* Tamanho reduzido */
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.login-header p {
+    font-size: 0.9rem; /* Tamanho reduzido */
+    color: #7f8c8d;
+    margin: 0;
+}
+
+/* CARD DO LOGIN */
+.login-card {
+    background: white;
+    border-radius: 10px; /* Bordas mais suaves */
+    padding: 25px; /* Padding reduzido */
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e1e5e9;
+    margin-bottom: 15px;
+}
+
+/* TÍTULO DA SELEÇÃO */
+.login-card .text-center h5 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #2c3e50;
+}
+
+.login-card .text-center p {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    margin-bottom: 20px;
+}
+
+/* DROPDOWN DE SELEÇÃO */
+.form-select-lg {
+    padding: 10px 15px;
+    font-size: 0.95rem;
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    height: 46px; /* Altura fixa */
+    transition: all 0.2s ease;
+}
+
+.form-select-lg:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    outline: none;
+}
+
+/* CONTAINER DO FORMULÁRIO DINÂMICO */
+#formContainer {
+    margin-top: 20px;
+    animation: fadeIn 0.3s ease;
+}
+
+/* BOTÃO VOLTAR */
+.btn-outline-secondary {
+    border: 1px solid #dee2e6;
+    color: #6c757d;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #f8f9fa;
+    border-color: #adb5bd;
+    color: #495057;
+}
+
+/* TÍTULO DOS FORMULÁRIOS */
+#formContainer h5 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+#formContainer .text-center p {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 20px;
+}
+
+/* LABELS DOS FORMULÁRIOS */
+.form-label {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: #495057;
+    margin-bottom: 6px;
+    display: block;
+}
+
+/* INPUTS E INPUT GROUPS */
+.input-group {
+    margin-bottom: 15px; /* Espaço reduzido */
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+    border: 1px solid #ced4da;
+    border-right: none;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+}
+
+.form-control {
+    border: 1px solid #ced4da;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    height: 40px; /* Altura fixa */
+    border-left: none;
+}
+
+.form-control:focus {
+    box-shadow: none;
+    border-color: #86b7fe;
+}
+
+/* BOTÃO DE MOSTRAR SENHA */
+.input-group .btn-outline-secondary {
+    border: 1px solid #ced4da;
+    border-left: none;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    height: 40px;
+}
+
+/* CHECKBOX LEMBRAR-ME */
+.form-check {
+    margin: 15px 0 20px 0;
+}
+
+.form-check-input {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+}
+
+.form-check-label {
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+/* BOTÕES DE ENTRAR */
+.btn-lg {
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: 500;
+    height: 46px; /* Altura fixa */
+    border-radius: 6px;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+    transform: translateY(-1px);
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+    transition: all 0.2s ease;
+}
+
+.btn-warning:hover {
+    background-color: #ffca2c;
+    border-color: #ffc720;
+    transform: translateY(-1px);
+}
+
+/* ALERTA DA SENHA PADRÃO */
+.alert-light {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-top: 15px;
+}
+
+.alert-light small {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+/* MENSAGENS DE STATUS/ERRO */
+#loginStatus {
+    margin-top: 15px;
+}
+
+.alert {
+    padding: 10px 15px;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border-color: #f5c2c7;
+    color: #842029;
+}
+
+.alert-success {
+    background-color: #d1e7dd;
+    border-color: #badbcc;
+    color: #0f5132;
+}
+
+/* RODAPÉ */
+.login-footer {
+    text-align: center;
+    margin-top: 20px;
+    padding: 0 10px;
+}
+
+.login-footer small {
+    font-size: 0.8rem;
+    color: #7f8c8d;
+}
+
+/* ANIMAÇÕES */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* FORMULÁRIO ADMIN - ESTILO ESPECÍFICO */
+#adminFormActive {
+    border-left: 3px solid #ffc107;
+}
+
+/* FORMULÁRIO CPF - ESTILO ESPECÍFICO */
+#cpfFormActive {
+    border-left: 3px solid #0d6efd;
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 576px) {
+    .login-container {
+        max-width: 100%;
+        padding: 10px;
+    }
+    
+    .login-card {
+        padding: 20px;
+    }
+    
+    .login-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    .login-header p {
+        font-size: 0.85rem;
+    }
+    
+    .form-select-lg {
+        font-size: 0.9rem;
+        padding: 8px 12px;
+    }
+}
+
+/* ESTILOS PARA O SELECT QUANDO ABERTO */
+.form-select-lg option {
+    padding: 8px;
+    font-size: 0.9rem;
+}
+
+/* REMOVER SETA PADRÃO DO SELECT EM ALGUNS NAVEGADORES */
+.form-select-lg {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px 12px;
+}
+
+/* ESTILO PARA DISABLED/READONLY */
+.form-control[readonly] {
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+}
+
+/* ESPAÇAMENTO ENTRE ELEMENTOS DO FORMULÁRIO */
+#formContainer > div {
+    margin-bottom: 0;
+}
+
+/* GRUPO DE INPUTS COM ESPAÇAMENTO CONSISTENTE */
+.mb-3 {
+    margin-bottom: 15px !important;
+}
+
+.mb-4 {
+    margin-bottom: 20px !important;
+}
+
+/* BOTÕES EM GRID (d-grid) */
+.d-grid {
+    margin-top: 5px;
+}

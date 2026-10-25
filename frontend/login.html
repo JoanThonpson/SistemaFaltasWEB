@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Faltas - Login</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS Personalizado -->
+    <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+    <!-- Container Principal do Login -->
+    <div class="login-container" style="width: 100%; max-width: 420px; margin: 0 auto;">
+        <!-- Logo/Cabeçalho -->
+        <div class="login-header text-center mb-4">
+            <i class="fas fa-chalkboard-teacher fa-3x text-primary"></i>
+            <h2 class="mt-3">Sistema de Faltas</h2>
+            <p class="text-muted">Controle de faltas de docentes</p>
+        </div>
+
+        <!-- ========== TELA 1: SELEÇÃO DE TIPO ========== -->
+        <div id="selectionScreen" class="login-card">
+            <div class="mb-4 text-center">
+                <h5 class="fw-bold">Tipo de Acesso:</h5>
+                <p class="text-muted">Selecione como deseja acessar o sistema</p>
+            </div>
+            
+            <!-- DROPDOWN de seleção -->
+            <div class="mb-4">
+                <label class="form-label fw-bold">Tipo de Acesso:</label>
+                <select class="form-select form-select-lg" id="tipoAcessoSelect" onchange="mudarTipoAcesso()">
+                    <option value="">-- Selecione o tipo de acesso --</option>
+                    <option value="cpf">Usuário/ (CPF)</option>
+                    <option value="admin">Administrador</option>
+                </select>
+            </div>
+            
+            <!-- Espaço onde o formulário aparecerá -->
+            <div id="formContainer"></div>
+        </div>
+
+        <!-- ========== TELA 2: FORMULÁRIO USUÁRIO/CPF (oculto) ========== -->
+        <div id="cpfFormTemplate" style="display: none;">
+            
+            <!-- Título do Formulário -->
+            <div class="mb-4">
+                <h5 class="fw-bold text-center">
+                    <i class="fas fa-user me-2 text-primary"></i>
+                    Acesso Usuário
+                </h5>
+                <p class="text-muted text-center small">Digite seu CPF e senha</p>
+            </div>
+            
+            <!-- Formulário CPF -->
+            <form id="loginFormCpf">
+                <!-- Campo CPF -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-id-card me-1"></i> CPF:
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-user"></i>
+                        </span>
+                        <input type="text" id="cpf" class="form-control" 
+                               placeholder="Digite seu CPF" required>
+                    </div>
+                </div>
+                
+                <!-- Campo Senha -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-lock me-1"></i> Senha:
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-key"></i>
+                        </span>
+                        <input type="password" id="passwordCpf" class="form-control" 
+                               placeholder="Digite sua senha" required>
+                        <button type="button" class="btn btn-outline-secondary" 
+                                onclick="togglePassword('passwordCpf')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Checkbox Lembrar-me -->
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="rememberMeCpf">
+                        <label class="form-check-label" for="rememberMeCpf">
+                            Lembrar-me
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Botão Entrar -->
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        Entrar
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- ========== TELA 3: FORMULÁRIO ADMINISTRADOR (oculto) ========== -->
+        <div id="adminFormTemplate" style="display: none;">
+            
+            <!-- Título do Formulário -->
+            <div class="mb-4">
+                <h5 class="fw-bold text-center">
+                    <i class="fas fa-user-shield me-2 text-warning"></i>
+                    Acesso Administrador
+                </h5>
+                <p class="text-muted text-center small">Acesso administrativo completo</p>
+            </div>
+            
+            <!-- Formulário Admin -->
+            <form id="loginFormAdmin">
+                <!-- Usuário fixo -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-user-shield me-1"></i> Usuário Admin:
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-user-tie"></i>
+                        </span>
+                        <input type="text" class="form-control" value="admin" readonly>
+                    </div>
+                    <div class="form-text small">Usuário fixo para administradores</div>
+                </div>
+                
+                <!-- Campo Senha -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-lock me-1"></i> Senha:
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-key"></i>
+                        </span>
+                        <input type="password" id="passwordAdmin" class="form-control" 
+                               placeholder="Digite a senha admin" required>
+                        <button type="button" class="btn btn-outline-secondary" 
+                                onclick="togglePassword('passwordAdmin')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Botão Entrar -->
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-warning btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        Entrar como Admin
+                    </button>
+                </div>
+                
+                <!-- Senha padrão -->
+                <div class="mt-4 pt-3 border-top text-center">
+                    <div class="alert alert-light border">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            <strong>Senha padrão:</strong> admin123
+                        </small>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Status/Erro (compartilhado) -->
+        <div id="loginStatus" class="mt-3" style="display: none;">
+            <div class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <span id="errorMessage"></span>
+            </div>
+        </div>
+        
+        <!-- Rodapé -->
+        <div class="login-footer text-center mt-4">
+            <small class="text-muted">
+            Sistema de Controle de Faltas &copy; 2025. Todos os direitos reservados.
+            </small>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    
+    <!-- JavaScript do Login -->
+    <script src="js/utils/storage.js"></script>
+    <script src="js/login.js" ></script>
+    
+    <!-- Script inline para navegação entre telas -->
+    <script>
+        // Função para mudar tipo de acesso (chamada pelo onchange do select)
+        function mudarTipoAcesso() {
+            const select = document.getElementById('tipoAcessoSelect');
+            const tipo = select.value;
+            const formContainer = document.getElementById('formContainer');
+            
+            if (!tipo) {
+                formContainer.innerHTML = '';
+                return;
+            }
+            
+            // Limpar container
+            formContainer.innerHTML = '';
+            
+            if (tipo === 'cpf') {
+                // Clonar template CPF
+                const template = document.getElementById('cpfFormTemplate');
+                const clone = template.cloneNode(true);
+                clone.id = 'cpfFormActive';
+                clone.style.display = 'block';
+                formContainer.appendChild(clone);
+                
+                // Configurar formulário CPF
+                setTimeout(() => {
+                    const form = document.getElementById('loginFormCpf');
+                    if (form) {
+                        form.addEventListener('submit', function(e) {
+                            e.preventDefault();
+                            handleCpfLogin();
+                        });
+                    }
+                    // Focar no campo CPF
+                    document.getElementById('cpf')?.focus();
+                }, 10);
+                
+            } else if (tipo === 'admin') {
+                // Clonar template Admin
+                const template = document.getElementById('adminFormTemplate');
+                const clone = template.cloneNode(true);
+                clone.id = 'adminFormActive';
+                clone.style.display = 'block';
+                formContainer.appendChild(clone);
+                
+                // Configurar formulário Admin
+                setTimeout(() => {
+                    const form = document.getElementById('loginFormAdmin');
+                    if (form) {
+                        form.addEventListener('submit', function(e) {
+                            e.preventDefault();
+                            handleAdminLogin();
+                        });
+                    }
+                    // Focar no campo senha
+                    document.getElementById('passwordAdmin')?.focus();
+                }, 10);
+            }
+        }
+        
+        // Voltar para seleção
+        function voltarParaSelecao() {
+            const select = document.getElementById('tipoAcessoSelect');
+            select.value = '';
+            
+            const formContainer = document.getElementById('formContainer');
+            formContainer.innerHTML = '';
+            
+            // Reset status
+            document.getElementById('loginStatus').style.display = 'none';
+        }
+        
+        // Mostrar/ocultar senha
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            
+            const button = input.nextElementSibling;
+            const icon = button.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+        
+        // Funções de login (serão definidas no login.js)
+        window.handleCpfLogin = function() {};
+        window.handleAdminLogin = function() {};
+        
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            // Resetar seleção
+            const select = document.getElementById('tipoAcessoSelect');
+            if (select) select.value = '';
+        });
+    </script>
+    </script>
+
+    <!-- ========== MODAL TROCAR SENHA ========== -->
+    <div class="modal fade" id="trocarSenhaModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-key me-2"></i>
+                        Criar Nova Senha
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        Por segurança você precisa criar uma nova senha.
+                        <div class="form-text">
+                                <br>A senha deve conter pelo menos uma letra minúscula!;
+                                <br>A senha deve conter pelo menos um número!;
+                                <br>A senha deve conter pelo menos um caractere especial!;
+                                <br>A senha deve conter no mínimo 8 caracteres!
+                            </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nova Senha</label>
+                        <div class="input-group">
+                            <input type="password" id="novaSenha" class="form-control" />
+                            <button class="btn btn-outline-secondary" onclick="togglePassword('novaSenha')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Confirmar Nova Senha</label>
+                        <div class="input-group">
+                            <input type="password" id="confirmarNovaSenha" class="form-control" />
+                            <button class="btn btn-outline-secondary" onclick="togglePassword('confirmarNovaSenha')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" onclick="salvarNovaSenha()">
+                        Salvar Nova Senha
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- JavaScript do Login -->
+    <script src="js/login.js"></script>
+
+</body>
+</html>

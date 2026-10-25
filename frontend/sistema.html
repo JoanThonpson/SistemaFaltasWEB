@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Controle de Faltas - Docentes</title>
+
+    <script>
+    // ========== PROTEÇÃO DE ACESSO DIRETO ==========
+    (function() {
+        console.log('🔒 Verificando autenticação antes de carregar a página...');
+        
+        // Verificar se está logado
+        let usuarioLogado = false;
+        
+        // Verificar no SistemaStorage (se já carregado)
+        if (window.SistemaStorage && typeof SistemaStorage.getUsuarioAtual === 'function') {
+            const usuario = SistemaStorage.getUsuarioAtual();
+            usuarioLogado = !!usuario;
+        }
+        
+        // Se não encontrou, verificar no localStorage
+        if (!usuarioLogado) {
+            const authData = localStorage.getItem('sistema_faltas_auth');
+            usuarioLogado = !!authData;
+        }
+        
+        // Se NÃO estiver logado, redirecionar para login
+        if (!usuarioLogado) {
+            console.log('❌ Usuário não autenticado! Redirecionando para login...');
+            window.location.replace('login.html');
+        } else {
+            console.log('✅ Usuário autenticado, pode carregar a página');
+        }
+    })();
+    </script>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS do Sistema -->
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- CSS dos Modais -->
+    <link rel="stylesheet" href="css/modais.css">
+    
+    <!-- Bibliotecas para relatórios -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- CSS inline do monolítico (para manter aparência idêntica) -->
+    <style>
+        .hidden { display: none !important; }
+        .badge-justificada { background-color: #28a745 !important; }
+        .badge-falta { background-color: #dc3545 !important; }
+        .filtro-container { background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+        .nav-tabs .nav-link.active { font-weight: bold; }
+        .table th { background-color: #343a40; color: white; }
+        .config-item { padding: 8px 12px; border-bottom: 1px solid #dee2e6; }
+        .config-item:last-child { border-bottom: none; }
+        .disciplina-item, .curso-item { margin-bottom: 10px; }
+        .nova-disciplina-input, .novo-curso-input { margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <!-- Sistema Principal -->
+    <div id="mainSystem">
+        <!-- Cabeçalho -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <span class="navbar-brand">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    Controle de Faltas - Docentes
+                </span>
+                <div class="navbar-nav ms-auto">
+                    <span class="navbar-text me-3" id="userInfo"></span>
+                    <button class="btn btn-outline-light btn-sm me-2" id="configBtn">
+                        <i class="fas fa-cog"></i> Configurações
+                    </button>
+                    <button class="btn btn-outline-light btn-sm" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Sair
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Navegação por Abas -->
+        <div class="container mt-4">
+            <ul class="nav nav-tabs" id="mainTabs">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#faltas" data-bs-toggle="tab">
+                        <i class="fas fa-list"></i> Controle de Faltas
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#docentes" data-bs-toggle="tab">
+                        <i class="fas fa-users"></i> Dados do Docente
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#justificativas" data-bs-toggle="tab">
+                        <i class="fas fa-file-alt"></i> Justificativas
+                    </a>
+                </li>
+                <li class="nav-item" id="adminTabItem">
+                    <a class="nav-link" href="#controle" data-bs-toggle="tab">
+                        <i class="fas fa-cog"></i> Relatórios e Estatísticas
+                    </a>
+                </li>
+            </ul>
+
+            <div class="tab-content mt-3">
+                <!-- Aba: Controle de Faltas -->
+                <div class="tab-pane fade show active" id="faltas">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Registro de Faltas</h5>
+                            <button onclick="mostrarModalFalta()" class="btn btn-success btn-sm">
+                                <i class="fas fa-plus"></i> Nova Falta
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <!-- Filtros -->
+                            <div class="filtro-container">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Mês:</label>
+                                        <select id="filtroMes" class="form-select">
+                                            <option value="">Todos os meses</option>
+                                            <option value="01">Janeiro</option>
+                                            <option value="02">Fevereiro</option>
+                                            <option value="03">Março</option>
+                                            <option value="04">Abril</option>
+                                            <option value="05">Maio</option>
+                                            <option value="06">Junho</option>
+                                            <option value="07">Julho</option>
+                                            <option value="08">Agosto</option>
+                                            <option value="09">Setembro</option>
+                                            <option value="10">Outubro</option>
+                                            <option value="11">Novembro</option>
+                                            <option value="12">Dezembro</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Ano:</label>
+                                        <select id="filtroAno" class="form-select">
+                                            <option value="">Todos os anos</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Docente:</label>
+                                        <select id="filtroDocente" class="form-select">
+                                            <option value="">Todos os docentes</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 d-flex align-items-end">
+                                        <button class="btn btn-outline-secondary w-100" id="limparFiltrosBtn">
+                                            <i class="fas fa-times"></i> Limpar Filtros
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Docente</th>
+                                            <th>Disciplina</th>
+                                            <th>Curso</th>
+                                            <th>Data</th>
+                                            <th>Horário Início</th>
+                                            <th>Horário Fim</th>
+                                            <th>Quant. Faltas</th>
+                                            <th>Justificativa</th>
+                                            <th>Observações</th>
+                                            <th>Status</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="faltasTableBody">
+                                        <!-- Dados serão preenchidos via JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aba: Cadastro de Docentes -->
+                <div class="tab-pane fade" id="docentes">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Lista de Docentes</h5>
+                            <button onclick="mostrarModalDocente()" class="btn btn-success btn-sm">
+                                <i class="fas fa-plus"></i> Novo Docente
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <!-- ========== FILTROS E BUSCA ========== -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-search"></i>
+                                        </span>
+                                        <input type="text" id="buscaDocente" class="form-control" 
+                                               placeholder="Buscar docente por nome...">
+                                        <button class="btn btn-outline-secondary" type="button" id="limparBuscaBtn">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="btn-group w-100" role="group">
+                                        <button type="button" class="btn btn-outline-primary active" id="filtroTodos">
+                                            <i class="fas fa-list"></i> Todos
+                                        </button>
+                                        <button type="button" class="btn btn-outline-success" id="filtroAtivos">
+                                            <i class="fas fa-check-circle"></i> Ativos
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" id="filtroInativos">
+                                            <i class="fas fa-times-circle"></i> Inativos
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ========== CONTADOR DE DOCENTES ========== -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <div class="alert alert-light border" id="contadorDocentes">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Mostrando <span id="totalMostrado">0</span> de <span id="totalGeral">0</span> docentes
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-striped text-center align-middle">
+                                    <thead class="table-dark text-center">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nome</th>
+                                            <th>Disciplina(s)</th>
+                                            <th>Curso(s)</th>
+                                            <th>Quantidade de Aulas</th>
+                                            <th>Status</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="docentesTableBody">
+                                        <!-- Dados serão preenchidos via JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aba: Justificativas -->
+                <div class="tab-pane fade" id="justificativas">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-0">Justificativas Cadastradas</h5>
+                                <small class="text-muted">
+                                                <i class="fas fa-lightbulb me-1"></i>
+                                                <strong>Dica:</strong> Justificativas podem ser editadas ou excluídas na aba de Configurações
+                                            </small>
+                            </div>
+                            <button class="btn btn-outline-primary btn-sm" onclick="showConfigModal()">
+                                <i class="fas fa-cog me-1"></i> Ir para Configurações
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <!-- Barra de busca -->
+                            <div class="mb-4">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                    <input type="text" id="buscaJustificativa" class="form-control" 
+                                           placeholder="Buscar justificativa...">
+                                    <button class="btn btn-outline-secondary" type="button" id="limparBuscaJustificativa">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text small mt-1">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Mostrando <span id="contadorJustificativas">0</span> justificativa(s)
+                                </div>
+                            </div>
+                            
+                            <!-- Lista de justificativas -->
+                            <div class="list-group" id="listaJustificativas" style="max-height: 500px; overflow-y: auto;">
+                                <!-- Lista será preenchida via JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aba: Relatórios e Estatísticas (Apenas para Admin) -->
+                <div class="tab-pane fade" id="controle">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Estatísticas e Relatórios</h5>
+                        </div>
+                        <div class="card-body">
+
+                            <!-- Conteúdo da aba Relatórios e Estatísticas -->
+                            <div class="row mt-3">
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">Filtrar Período</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Data Início:</label>
+                                                        <input type="date" id="dataInicio" class="form-control">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Data Fim:</label>
+                                                        <input type="date" id="dataFim" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-primary w-100" id="aplicarFiltroBtn">
+                                                <i class="fas fa-filter me-1"></i> Aplicar Filtro
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-8">
+                                    <div class="card">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0">Estatísticas Gerais</h6>
+                                            <button class="btn btn-success btn-sm" id="gerarRelatorioPDFBtn">
+                                                <i class="fas fa-file-pdf me-1"></i> Gerar Relatório
+                                            </button>
+                                        </div>
+                                        <div class="card-body" id="estatisticas">
+                                            <!-- Estatísticas serão carregadas aqui -->
+                                            <div class="text-center text-muted py-4">
+                                                <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                                                <p>Carregando estatísticas...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">Resumo de Faltas por Docente</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Docente</th>
+                                                            <th>Total de Faltas</th>
+                                                            <th>Justificadas</th>
+                                                            <th>Não Justificadas</th>
+                                                            <th>Percentual</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="tabelaResumoFaltas">
+                                                        <!-- Dados serão carregados aqui -->
+                                                        <tr>
+                                                            <td colspan="5" class="text-center text-muted py-3">
+                                                                <i class="fas fa-spinner fa-spin me-2"></i>
+                                                                Carregando dados...
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== MODAIS ========== -->
+    <!-- NOTA: Modais devem estar FORA do #mainSystem e FORA das abas -->
+
+    <!-- Modal para Adicionar/Editar Falta -->
+    <div class="modal fade" id="addFaltaModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="faltaModalTitle">Registrar Falta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="faltaForm">
+                        <div class="mb-3">
+                            <label class="form-label">Docente:</label>
+                            <select id="docenteSelect" class="form-select" required>
+                                <option value="">Selecione um docente</option>
+                                <!-- Preenchido dinamicamente -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Disciplina:</label>
+                            <select id="disciplinaSelect" class="form-select" required>
+                                <option value="">Selecione uma disciplina</option>
+                                <!-- Preenchido dinamicamente -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Curso:</label>
+                            <select id="cursoSelect" class="form-select" required>
+                                <option value="">Selecione um curso</option>
+                                <!-- Preenchido dinamicamente -->
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Quantidade de Faltas:</label>
+                                    <input type="number" id="quantidadeFaltas" class="form-control" min="1" value="1" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Falta Justificada:</label>
+                                    <select id="faltaJustificada" class="form-select">
+                                        <option value="nao">Não</option>
+                                        <option value="sim">Sim</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Container da justificativa (inicialmente escondido) -->
+                        <div id="justificativaContainer" class="mb-3 hidden">
+                            <label class="form-label">Justificativa:</label>
+                            <select id="justificativaSelect" class="form-select">
+                                <option value="">Selecione uma justificativa</option>
+                                <!-- Preenchido dinamicamente -->
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Data:</label>
+                            <input type="date" id="faltaData" class="form-control" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Horário Início:</label>
+                                    <input type="time" id="faltaHorarioInicio" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Horário Fim:</label>
+                                    <input type="time" id="faltaHorarioFim" class="form-control" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Observações:</label>
+                            <textarea id="faltaObservacoes" class="form-control" rows="3" placeholder="Descreva observações adicionais..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelarFaltaBtn">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="salvarFaltaBtn">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar/Editar Docente -->
+    <div class="modal fade" id="addDocenteModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="docenteModalTitle">Cadastrar Docente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="docenteForm">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label class="form-label">Nome do Docente:</label>
+                                    <input type="text" id="docenteNome" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Quantidade de Aulas:</label>
+                                    <input type="number" id="docenteAulas" class="form-control" min="1" value="20" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- DISCIPLINAS (MÚLTIPLAS) -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Disciplinas:</label>
+                            <div id="listaDisciplinasDocente">
+                                <!-- Disciplinas serão carregadas dinamicamente -->
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-success mt-2" onclick="adicionarNovaDisciplinaDocente()">
+                                <i class="fas fa-plus me-1"></i> Adicionar outra disciplina
+                            </button>
+                        </div>
+                        
+                        <!-- CURSOS (MÚLTIPLOS) -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Cursos:</label>
+                            <div id="listaCursosDocente">
+                                <!-- Cursos serão carregadas dinamicamente -->
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-success mt-2" onclick="adicionarNovoCursoDocente()">
+                                <i class="fas fa-plus me-1"></i> Adicionar outro curso
+                            </button>
+                        </div>
+                        
+                        <!-- STATUS -->
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="docenteAtivo" checked>
+                                <label class="form-check-label" for="docenteAtivo">
+                                    Docente ativo no sistema
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="salvarDocenteBtn">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Configurações -->
+    <div class="modal fade" id="configModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-cog me-2"></i>Configurações do Sistema
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs" id="configTabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#tabDisciplinas">
+                                <i class="fas fa-book me-1"></i>Disciplinas
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#tabCursos">
+                                <i class="fas fa-graduation-cap me-1"></i>Cursos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#tabJustificativas">
+                                <i class="fas fa-file-alt me-1"></i>Justificativas
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#tabUsuarios">
+                                <i class="fas fa-users me-1"></i>Usuários
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#tabPerfis">
+                                <i class="fas fa-user-shield me-1"></i>Perfis
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#tabLogs">
+                                <i class="fas fa-history me-1"></i>Logs
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content mt-3">
+                        <!-- Aba Disciplinas -->
+                        <div class="tab-pane fade show active" id="tabDisciplinas">
+                            <div class="mb-3">
+                                <div class="input-group">
+                                    <input type="text" id="buscaDisciplina" class="form-control" 
+                                           placeholder="Buscar disciplina...">
+                                    <button class="btn btn-success" id="btnNovaDisciplina">
+                                        <i class="fas fa-plus me-1"></i>Nova
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="list-group" id="listaDisciplinas" 
+                                 style="max-height: 400px; overflow-y: auto;">
+                                <!-- Lista será preenchida via JavaScript -->
+                            </div>
+                        </div>
+                        
+                        <!-- Aba Cursos -->
+                        <div class="tab-pane fade" id="tabCursos">
+                            <div class="mb-3">
+                                <div class="input-group">
+                                    <input type="text" id="buscaCurso" class="form-control" 
+                                           placeholder="Buscar curso...">
+                                    <button class="btn btn-success" id="btnNovoCurso">
+                                        <i class="fas fa-plus me-1"></i>Novo
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="list-group" id="listaCursos" 
+                                 style="max-height: 400px; overflow-y: auto;">
+                                <!-- Lista será preenchida via JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Aba Justificativas -->
+                        <div class="tab-pane fade" id="tabJustificativas">
+                            <div class="mb-3">
+                                <div class="input-group">
+                                    <input type="text" id="buscaJustificativaConfig" class="form-control" 
+                                           placeholder="Buscar justificativa...">
+                                    <button class="btn btn-success" id="btnNovaJustificativa">
+                                        <i class="fas fa-plus me-1"></i>Nova
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="list-group" id="listaJustificativasConfig" 
+                                 style="max-height: 400px; overflow-y: auto;">
+                                <!-- Lista será preenchida via JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Aba Usuários -->
+                         <div class="tab-pane fade" id="tabUsuarios">
+                            <div class="mb-3">
+                                <div class="input-group">
+                                    <input type="text" id="buscaUsuario" class="form-control" 
+                                        placeholder="Buscar usuário por nome ou CPF...">
+                                    <button class="btn btn-success" id="btnNovoUsuario">
+                                                <i class="fas fa-plus me-1"></i>Novo Usuário
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="list-group" id="listaUsuarios" 
+                                style="max-height: 400px; overflow-y: auto;">
+                                <!-- Lista será preenchida via JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Aba Perfis -->
+                        <div class="tab-pane fade" id="tabPerfis">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Perfis Pré-definidos:</strong> O sistema possui 4 perfis fixos. Você pode visualizar e ajustar as permissões de cada perfil.
+                            </div>
+    
+                            <div class="list-group" id="listaPerfis" 
+                             style="max-height: 500px; overflow-y: auto;">
+                                <!-- Lista será preenchida via JavaScript -->
+                            </div>
+    
+                            <div class="mt-3 text-muted small">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                <strong>Atenção:</strong> As alterações nas permissões afetam todos os usuários com aquele perfil.
+                            </div>
+                        </div>
+
+                        <!-- Aba Logs -->
+                        <div class="tab-pane fade" id="tabLogs">
+                            <!-- Filtros -->
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Filtros</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label class="form-label">Usuário:</label>
+                                            <select id="filtroLogUsuario" class="form-select">
+                                                <option value="">Todos os usuários</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label class="form-label">Perfil:</label>
+                                            <select id="filtroLogPerfil" class="form-select">
+                                                <option value="">Todos os perfis</option>
+                                                <option value="Master">Master</option>
+                                                <option value="Gestor">Gestor</option>
+                                                <option value="Operador">Operador</option>
+                                                <option value="Supervisor">Supervisor</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label class="form-label">Módulo:</label>  
+                                            <select id="filtroLogModulo" class="form-select">
+                                                <option value="">Todos os módulos</option>
+                                                <option value="Autenticação">Autenticação</option>
+                                                <option value="Sistema">Sistema</option>
+                                                <option value="Docentes">Docentes</option>
+                                                <option value="Faltas">Faltas</option>
+                                                <option value="Justificativas">Justificativas</option>
+                                                <option value="Usuários">Usuários</option>
+                                                <option value="Perfis">Perfis</option>
+                                                <option value="Configurações">Configurações</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label class="form-label">Período:</label>
+                                            <select id="filtroLogPeriodo" class="form-select">
+                                                <option value="hoje">Hoje</option>
+                                                <option value="ontem">Ontem</option>
+                                                <option value="ontem">Ontem</option>
+                                                <option value="30dias">Últimos 30 dias</option>
+                                                <option value="todos">Todo o período</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary w-100" id="btnAplicarFiltroLogs">
+                                    <i class="fas fa-filter me-1"></i> Aplicar Filtros
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tabela de Logs -->
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Data/Hora</th>
+                                        <th>Usuário</th>
+                                        <th>Perfil</th>
+                                        <th>Módulo</th>
+                                        <th>Ação</th>
+                                        <th>Detalhes</th>
+                                        <th>IP</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelaLogs">
+                                     <!-- Dados serão carregados via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                 <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    </button>
+                 </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal Adicionar Disciplina -->
+    <div class="modal fade" id="addDisciplinaModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Adicionar Nova Disciplina</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nome da Disciplina:</label>
+                        <input type="text" id="novaDisciplinaNome" class="form-control" 
+                               placeholder="Ex: Matemática, Física, Química...">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="salvarDisciplinaBtn">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar Curso -->
+    <div class="modal fade" id="addCursoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Adicionar Novo Curso</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nome do Curso:</label>
+                        <input type="text" id="novoCursoNome" class="form-control" 
+                               placeholder="Ex: Ensino Médio, Ensino Fundamental...">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="salvarCursoBtn">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar Justificativa -->
+    <div class="modal fade" id="addJustificativaModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Adicionar Nova Justificativa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Descrição da Justificativa:</label>
+                        <input type="text" id="novaJustificativaDescricao" class="form-control" 
+                               placeholder="Ex: Consulta médica, Problemas de saúde...">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="salvarJustificativaBtn">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS e nossos scripts DEVEM estar AQUI, NO FINAL DO BODY -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- JavaScript do Sistema - ORDEM CORRETA -->
+    <script src="js/utils/storage.js"></script>
+    <script src="js/app.js"></script>
+    
+    <!-- Script inline para configurações finais -->
+    <script>
+        // Configurações finais após tudo carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ Sistema HTML completamente carregado');
+            
+            // Verificar se o SistemaStorage foi carregado
+            if (typeof SistemaStorage === 'undefined') {
+                console.error('❌ SistemaStorage não está disponível!');
+                alert('Erro crítico: Sistema de dados não carregado. Recarregue a página (Ctrl+F5).');
+            } else {
+                console.log('✅ SistemaStorage disponível');
+                console.log('Docentes:', SistemaStorage.docentes.length);
+                console.log('Faltas:', SistemaStorage.faltas.length);
+            }
+            
+            // Configurar evento para o botão de configurações (fallback)
+            const configBtn = document.getElementById('configBtn');
+            if (configBtn) {
+                configBtn.addEventListener('click', function() {
+                    console.log('Botão Configurações clicado');
+                    if (typeof showConfigModal === 'function') {
+                        showConfigModal();
+                    } else if (typeof mostrarModalConfiguracoes === 'function') {
+                        mostrarModalConfiguracoes();
+                    } else {
+                        alert('Função de configurações não disponível. Recarregue a página.');
+                    }
+                });
+            }
+            
+            // Configurar evento para toggle de justificativa
+            const faltaJustificadaSelect = document.getElementById('faltaJustificada');
+            if (faltaJustificadaSelect) {
+                faltaJustificadaSelect.addEventListener('change', function() {
+                    if (typeof toggleCampoJustificativa === 'function') {
+                        toggleCampoJustificativa();
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- Modal Adicionar/Editar Usuário -->
+<div class="modal fade" id="addUsuarioModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="usuarioModalTitle">Cadastrar Usuário</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="usuarioForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Nome Completo:</label>
+                                <input type="text" id="usuarioNome" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">CPF:</label>
+                                <input type="text" id="usuarioCPF" class="form-control" required>
+                                <div class="form-text">Formato: 000.000.000-00</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Email:</label>
+                                <input type="email" id="usuarioEmail" class="form-control">
+                                <!-- <div class="form-text">Opcional - para recuperação de senha</div> -->
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Perfil:</label>
+                                <select id="usuarioPerfil" class="form-select" required>
+                                    <option value="">Selecione um perfil</option>
+                                    <!-- Preenchido dinamicamente -->
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Senha:</label>
+                                <input type="password" id="usuarioSenha" class="form-control">
+                                <!-- <div class="form-text">Deixe em branco para senha padrão</div> -->
+                            </div>
+                             <!-- Checkbox forçar troca de senha (só aparece ao gerar senha) -->
+                    <div id="forcarTrocaContainer" style="display: none;" class="mt-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="forcarTrocaSenha">
+                            <label class="form-check-label" for="forcarTrocaSenha">
+                             <i class="fas fa-exclamation-triangle text-warning me-1"></i>
+                                 Alterar senha no próximo login
+                            </label>
+                            <div class="form-text small text-muted">
+                            A senha gerada será temporária. O usuário precisará criar uma nova senha ao fazer login.
+                            </div>
+                        </div>
+                    </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Confirmar Senha:</label>
+                                <input type="password" id="usuarioConfirmarSenha" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="usuarioAtivo" checked>
+                            <label class="form-check-label" for="usuarioAtivo">
+                                Usuário ativo no sistema
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div id="senhaGeradaContainer" class="alert alert-info" style="display: none;">
+                        <i class="fas fa-key me-2"></i>
+                        <strong>Senha Gerada:</strong> <span id="senhaGerada"></span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" 
+                                onclick="copiarSenha()">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="salvarUsuarioBtn">Salvar</button>
+                <button type="button" class="btn btn-success" id="gerarSenhaBtn" style="display: none;">
+                    <i class="fas fa-key"></i> Gerar Nova Senha
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Adicionar/Editar Perfil -->
+<div class="modal fade" id="addPerfilModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="perfilModalTitle">Cadastrar Perfil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="perfilForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Nome do Perfil:</label>
+                                <input type="text" id="perfilNome" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Descrição:</label>
+                                <input type="text" id="perfilDescricao" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Permissões organizadas por módulos -->
+                    <div class="accordion" id="accordionPermissoes">
+                        <!-- Módulo 1: Faltas -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#collapseFaltas">
+                                    📋 Controle de Faltas
+                                </button>
+                            </h2>
+                            <div id="collapseFaltas" class="accordion-collapse collapse show">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input permissao-check" type="checkbox" 
+                                                       id="permissaoVerFaltas" checked disabled>
+                                                <label class="form-check-label" for="permissaoVerFaltas">
+                                                    Visualizar faltas
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input permissao-check" type="checkbox" 
+                                                       id="permissaoRegistrarFalta">
+                                                <label class="form-check-label" for="permissaoRegistrarFalta">
+                                                    Registrar nova falta
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input permissao-check" type="checkbox" 
+                                                       id="permissaoEditarFalta">
+                                                <label class="form-check-label" for="permissaoEditarFalta">
+                                                    Editar falta
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input permissao-check" type="checkbox" 
+                                                       id="permissaoExcluirFalta">
+                                                <label class="form-check-label" for="permissaoExcluirFalta">
+                                                    Excluir faltas
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Módulo 2: Docentes -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#collapseDocentes">
+                                    👥 Dados do Docente
+                                </button>
+                            </h2>
+                            <div id="collapseDocentes" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <!-- Adicionar checkboxes para permissões de docentes -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Adicionar mais módulos conforme necessário -->
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="salvarPerfilBtn">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ========== MODAL DE EDIÇÃO DE PERMISSÕES ========== -->
+<div class="modal fade" id="editarPermissoesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-shield me-2"></i>
+                    Editar Permissões: <span id="perfilNomeTitulo"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <form id="permissoesForm">
+                    <!-- Módulo 1: CONTROLE DE FALTAS -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="fas fa-calendar-alt me-2"></i>
+                                CONTROLE DE FALTAS
+                            </h6>
+                            <div>
+                                <button type="button" class="btn btn-sm btn-light" onclick="selecionarTodosModulo('faltas')">
+                                    <i class="fas fa-check-double me-1"></i> Todos
+                                </button>
+                                <button type="button" class="btn btn-sm btn-light ms-1" onclick="limparTodosModulo('faltas')">
+                                    <i class="fas fa-times me-1"></i> Limpar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input permissao-checkbox" type="checkbox" 
+                                               id="perm_ver_faltas" data-modulo="faltas" data-permissao="ver_faltas">
+                                        <label class="form-check-label" for="perm_ver_faltas">
+                                            Visualizar faltas
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input permissao-checkbox" type="checkbox" 
+                                               id="perm_registrar_falta" data-modulo="faltas" data-permissao="registrar_falta">
+                                        <label class="form-check-label" for="perm_registrar_falta">
+                                            Registrar nova falta
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input permissao-checkbox" type="checkbox" 
+                                               id="perm_editar_falta" data-modulo="faltas" data-permissao="editar_falta">
+                                        <label class="form-check-label" for="perm_editar_falta">
+                                            Editar falta
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input permissao-checkbox" type="checkbox" 
+                                               id="perm_excluir_falta" data-modulo="faltas" data-permissao="excluir_falta">
+                                        <label class="form-check-label" for="perm_excluir_falta">
+                                            Excluir faltas
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Módulo 2: DADOS DO DOCENTE -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="fas fa-users me-2"></i>
+                                DADOS DO DOCENTE
+                            </h6>
+                            <div>
+                                <button type="button" class="btn btn-sm btn-light" onclick="selecionarTodosModulo('docentes')">
+                                    <i class="fas fa-check-double me-1"></i> Todos
+                                </button>
+                                <button type="button" class="btn btn-sm btn-light ms-1" onclick="limparTodosModulo('docentes')">
+                                    <i class="fas fa-times me-1"></i> Limpar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input permissao-checkbox" type="checkbox" 
+                                               id="perm_ver_docentes" data-modulo="docentes" data-permissao="ver_docentes">
+                                        <label class="form-check-label" for="perm_ver_docentes">
+                                            Visualizar docentes
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input permissao-checkbox" type="checkbox" 
+                                               id="perm_cadastrar_docente" data-modulo="docentes" data-permissao="cadastrar_docente">
+                                        <label class="form-check-label" for="perm_cadastrar_docente">
+                                            Cadastrar novo docente
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input permissao-checkbox" type="checkbox" 
+                                               id="perm_editar_docente" data-modulo="docentes" data-permissao="editar_docente">
+                                        <label class="form-check-label" for="perm_editar_docente">
+                                            Editar docente
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input permissao-checkbox" type="checkbox" 
+                                               id="perm_excluir_docente" data-modulo="docentes" data-permissao="excluir_docente">
+                                        <label class="form-check-label" for="perm_excluir_docente">
+                                            Excluir docentes
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Módulo 3: JUSTIFICATIVAS -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="fas fa-file-alt me-2"></i>
+                                JUSTIFICATIVAS
+                            </h6>
+                            <div>
+                                <button type="button" class="btn btn-sm btn-light" onclick="selecionarTodosModulo('justificativas')">
+                                    <i class="fas fa-check-double me-1"></i> Todos
+                                </button>
+                                <button type="button" class="btn btn-sm btn-light ms-1" onclick="limparTodosModulo('justificativas')">
+                                    <i class="fas fa-times me-1"></i> Limpar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input permissao-checkbox" type="checkbox" 
+                                               id="perm_ver_justificativas" data-modulo="justificativas" data-permissao="ver_justificativas">
+                                        <label class="form-check-label" for="perm_ver_justificativas">
+                                            Visualizar justificativas
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input permissao-checkbox" type="checkbox" 
+                                               id="perm_gerenciar_justificativas" data-modulo="justificativas" data-permissao="gerenciar_justificativas">
+                                        <label class="form-check-label" for="perm_gerenciar_justificativas">
+                                            Cadastrar/editar justificativas
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Módulo 4: RELATÓRIOS E ESTATÍSTICAS -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                RELATÓRIOS E ESTATÍSTICAS
+                            </h6>
+                            <div>
+                                <button type="button" class="btn btn-sm btn-light" onclick="selecionarTodosModulo('relatorios')">
+                                    <i class="fas fa-check-double me-1"></i> Todos
+                                </button>
+                                <button type="button" class="btn btn-sm btn-light ms-1" onclick="limparTodosModulo('relatorios')">
+                                    <i class="fas fa-times me-1"></i> Limpar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input permissao-checkbox" type="checkbox" 
+                                               id="perm_ver_relatorios" data-modulo="relatorios" data-permissao="ver_relatorios">
+                                        <label class="form-check-label" for="perm_ver_relatorios">
+                                            Visualizar relatórios
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input permissao-checkbox" type="checkbox" 
+                                               id="perm_gerar_relatorio_pdf" data-modulo="relatorios" data-permissao="gerar_relatorio_pdf">
+                                        <label class="form-check-label" for="perm_gerar_relatorio_pdf">
+                                            Gerar relatório PDF
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Módulo 5: CONFIGURAÇÕES -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="fas fa-cog me-2"></i>
+                                CONFIGURAÇÕES
+                            </h6>
+                            <div>
+                                <button type="button" class="btn btn-sm btn-light" onclick="selecionarTodosModulo('configuracoes')">
+                                    <i class="fas fa-check-double me-1"></i> Todos
+                                </button>
+                                <button type="button" class="btn btn-sm btn-light ms-1" onclick="limparTodosModulo('configuracoes')">
+                                    <i class="fas fa-times me-1"></i> Limpar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input permissao-checkbox" type="checkbox" 
+                                               id="perm_acessar_configuracoes" data-modulo="configuracoes" data-permissao="acessar_configuracoes">
+                                        <label class="form-check-label" for="perm_acessar_configuracoes">
+                                            Acessar configurações
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input permissao-checkbox" type="checkbox" 
+                                               id="perm_gerenciar_disciplinas" data-modulo="configuracoes" data-permissao="gerenciar_disciplinas">
+                                        <label class="form-check-label" for="perm_gerenciar_disciplinas">
+                                            Gerenciar disciplinas
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input permissao-checkbox" type="checkbox" 
+                                               id="perm_gerenciar_cursos" data-modulo="configuracoes" data-permissao="gerenciar_cursos">
+                                        <label class="form-check-label" for="perm_gerenciar_cursos">
+                                            Gerenciar cursos
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mt-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input permissao-checkbox" type="checkbox" 
+                                               id="perm_gerenciar_usuarios" data-modulo="configuracoes" data-permissao="gerenciar_usuarios">
+                                        <label class="form-check-label" for="perm_gerenciar_usuarios">
+                                            Gerenciar usuários
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mt-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input permissao-checkbox" type="checkbox" 
+                                               id="perm_editar_usuario" data-modulo="configuracoes" data-permissao="editar_usuario">
+                                        <label class="form-check-label" for="perm_editar_usuario">
+                                            Editar usuário
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mt-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input permissao-checkbox" type="checkbox" 
+                                               id="perm_resetar_senhas" data-modulo="configuracoes" data-permissao="resetar_senhas">
+                                        <label class="form-check-label" for="perm_resetar_senhas">
+                                            Resetar senhas
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mt-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input permissao-checkbox" type="checkbox" 
+                                               id="perm_visualizar_logs" data-modulo="configuracoes" data-permissao="visualizar_logs">
+                                        <label class="form-check-label" for="perm_visualizar_logs">
+                                            Visualizar logs
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mt-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input permissao-checkbox" type="checkbox" 
+                                               id="perm_gerenciar_perfis" data-modulo="configuracoes" data-permissao="gerenciar_perfis">
+                                        <label class="form-check-label" for="perm_gerenciar_perfis">
+                                            Gerenciar perfis
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Observação sobre perfil Master -->
+                    <div class="alert alert-info" id="masterWarning" style="display: none;">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Perfil Master:</strong> Este perfil tem todas as permissões e não pode ser editado.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-success" onclick="selecionarTodosModulo('todos')">
+                    <i class="fas fa-check-double me-1"></i> Selecionar Todos
+                </button>
+                <button type="button" class="btn btn-warning" onclick="limparTodosModulo('todos')">
+                    <i class="fas fa-eraser me-1"></i> Limpar Todos
+                </button>
+                <button type="button" class="btn btn-primary" id="salvarPermissoesBtn">
+                    <i class="fas fa-save me-1"></i> Salvar Permissões
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+        // Verificação dupla (caso o primeiro script falhe)
+        (function() {
+            const authData = localStorage.getItem('sistema_faltas_auth');
+            if (!authData && window.location.pathname.includes('sistema.html')) {
+                console.log('⚠️ Verificação adicional: redirecionando...');
+                window.location.replace('login.html');
+            }
+        })();
+    </script>
+</body>
+</html>

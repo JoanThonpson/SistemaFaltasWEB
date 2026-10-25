@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Controle de Faltas - Docentes</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            margin: 50px auto;
+            max-width: 1200px;
+        }
+
+        /* Cabeçalho */
+        .hero-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .hero-header i {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            color: #ffd700;
+        }
+
+        .hero-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .hero-header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            margin-bottom: 5px;
+        }
+
+        /* Conteúdo Principal */
+        .hero-content {
+            padding: 50px;
+            background: white;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 30px 20px;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+            height: 100%;
+            border: 1px solid #e9ecef;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+
+        .feature-card i {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .feature-card p {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+
+        /* Cards de Acesso */
+        .access-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 40px;
+            color: white;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .access-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .access-card i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #ffd700;
+        }
+
+        .access-card h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .access-card p {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            opacity: 0.95;
+        }
+
+        .btn-access {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-access:hover {
+            background: #f8f9fa;
+            transform: scale(1.05);
+            color: #764ba2;
+        }
+
+        /* Benefícios */
+        .benefits-section {
+            margin-top: 50px;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .benefit-icon {
+            width: 50px;
+            height: 50px;
+            background: #e8f0fe;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            font-size: 1.3rem;
+        }
+
+        .benefit-text {
+            flex: 1;
+        }
+
+        .benefit-text h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .benefit-text p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+
+        /* Estatísticas */
+        .stats-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 40px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        /* Depoimentos */
+        .testimonial-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            height: 100%;
+            border-left: 4px solid #667eea;
+        }
+
+        .testimonial-card i {
+            color: #667eea;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .testimonial-card p {
+            color: #555;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .testimonial-author img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .author-info h5 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .author-info p {
+            font-size: 0.8rem;
+            margin-bottom: 0;
+            font-style: normal;
+        }
+
+        /* Rodapé */
+        .hero-footer {
+            background: #2d3748;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .footer-links a {
+            color: #a0aec0;
+            text-decoration: none;
+            margin: 0 15px;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .social-icons {
+            margin-top: 20px;
+        }
+
+        .social-icons a {
+            color: white;
+            margin: 0 10px;
+            font-size: 1.3rem;
+            transition: transform 0.3s ease;
+        }
+
+        .social-icons a:hover {
+            transform: translateY(-3px);
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .hero-header h1 {
+                font-size: 2rem;
+            }
+
+            .hero-content {
+                padding: 30px 20px;
+            }
+
+            .access-card {
+                padding: 30px 20px;
+            }
+
+            .access-card h2 {
+                font-size: 1.8rem;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero-section">
+            <!-- Cabeçalho -->
+            <div class="hero-header">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <h1>Sistema de Controle de Faltas</h1>
+                <p>Gerencie faltas de docentes de forma simples e eficiente</p>
+                <p><i class="fas fa-map-marker-alt me-2" style="font-size: 1.2rem;"></i> Aracaju - SE</p>
+            </div>
+
+            <!-- Conteúdo Principal -->
+            <div class="hero-content">
+                <div class="row">
+                    <!-- Cards de Acesso -->
+                    <div class="col-md-6 mb-4">
+                        <div class="access-card">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <h2>Acessar Sistema</h2>
+                            <p>Faça login para gerenciar faltas, docentes e gerar relatórios</p>
+                            <a href="frontend/login.html" class="btn-access">
+                                <i class="fas fa-arrow-right me-2"></i>Entrar no Sistema
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Cards de Informação -->
+                    <div class="col-md-6 mb-4">
+                        <div class="row h-100">
+                            <div class="col-6 mb-3">
+                                <div class="feature-card">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <h3>Controle de Faltas</h3>
+                                    <p>Registre e acompanhe faltas de docentes em tempo real</p>
+                                </div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <div class="feature-card">
+                                    <i class="fas fa-users"></i>
+                                    <h3>Gestão de Docentes</h3>
+                                    <p>Cadastre e gerencie informações completas dos docentes</p>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="feature-card">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <h3>Relatórios</h3>
+                                    <p>Gere relatórios detalhados e estatísticas</p>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="feature-card">
+                                    <i class="fas fa-shield-alt"></i>
+                                    <h3>Perfis de Acesso</h3>
+                                    <p>4 níveis de acesso: Master, Gestor, Operador e Supervisor</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Benefícios -->
+                <div class="row benefits-section">
+                    <div class="col-md-6">
+                        <h3 class="mb-4"><i class="fas fa-star text-warning me-2"></i>Por que usar sistema?</h3>
+                        
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="benefit-text">
+                                <h4>Controle Total</h4>
+                                <p>Gerencie todas as faltas com histórico completo e justificativas</p>
+                            </div>
+                        </div>
+
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <div class="benefit-text">
+                                <h4>Segurança</h4>
+                                <p>Sistema com perfis de acesso e permissões granulares</p>
+                            </div>
+                        </div>
+
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="benefit-text">
+                                <h4>Análise de Dados</h4>
+                                <p>Estatísticas completas e relatórios personalizados</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estatísticas -->
+                    <div class="col-md-6">
+                        <div class="stats-section">
+                            <h4 class="mb-4"><i class="fas fa-chart-pie me-2 text-primary"></i>Detalhes do Sistema</h4>
+                            
+                            <div class="row">
+                                <div class="col-4 stat-item">
+                                    <div class="stat-number">4</div>
+                                    <div class="stat-label">Tipos de Perfis</div>
+                                </div>
+                                <div class="col-4 stat-item">
+                                    <div class="stat-number">✓</div>
+                                    <div class="stat-label">justificativas</div>
+                                </div>
+                                <div class="col-4 stat-item">
+                                    <div class="stat-number">📊</div>
+                                    <div class="stat-label">Relatórios</div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="row">
+                                <div class="col-6">
+                                    <small class="text-muted">Versão</small>
+                                    <h5>1.0.0</h5>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Última atualização</small>
+                                    <h5>Fevereiro/2026</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Depoimentos -->
+                <div class="row mt-5">
+                    <div class="col-12">
+                        <h3 class="text-center mb-4"><i class="fas fa-comments me-2 text-primary"></i>O que dizer sobre o sistema?</h3>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="testimonial-card">
+                            <i class="fas fa-quote-left"></i>
+                            <p>Sistema intuitivo e completo. Facilitou muito o controle de faltas na instituição.</p>
+                            <div class="testimonial-author">
+                                <div class="author-info">
+                                    <!--<h5>João Silva</h5>-->
+                                    <p>Gestor</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <div class="testimonial-card">
+                            <i class="fas fa-quote-left"></i>
+                            <p>Os relatórios são excelentes! Consigo acompanhar tudo de forma organizada.</p>
+                            <div class="testimonial-author">
+                                <div class="author-info">
+                                    <!--<h5>Maria Santos</h5>-->
+                                    <p>Coordenadora</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <div class="testimonial-card">
+                            <i class="fas fa-quote-left"></i>
+                            <p>Perfeito para o dia a dia educaiconal. Recomendo para todas as instituições.</p>
+                            <div class="testimonial-author">
+                                <div class="author-info">
+                                    <!--<h5>Pedro Costa</h5>-->
+                                    <p>Administrador</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rodapé -->
+            <div class="hero-footer">
+                <div class="footer-links mb-3">
+                    <a href="#"><i class="fas fa-home me-1"></i>Início</a>
+                    <!-- <a href="#"><i class="fas fa-info-circle me-1"></i>Sobre</a> -->
+                    <a href="https://www.linkedin.com/in/joan-thonpson-santos/">
+                        <i class="fas fa-envelope me-1"></i>Contato
+                    </a>
+                    <a href="#"><i class="fas fa-question-circle me-1"></i>Ajuda</a>
+                </div>
+
+                <div class="social-icons">
+                    <a href="https://www.linkedin.com/in/joan-thonpson-santos/" target="_blank">
+                        <i class="fab fa-linkedin"></i>
+                    </a>
+                    <a href="https://github.com/JoanThonpson" target="_blank">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <!-- <a href="#"><i class="fab fa-twitter"></i></a> -->
+                </div>
+
+                <hr class="my-3" style="border-color: rgba(255,255,255,0.1);">
+
+                <p class="mb-0">
+                    <small>
+                        <i class="fas fa-copyright me-1"></i>
+                        2026 Sistema de Controle de Faltas. Todos os direitos reservados.
+                    </small>
+                </p>
+                <p class="mb-0 mt-2">
+                    <small>
+                        Desenvolvido por 
+                        <a href="https://www.linkedin.com/in/joan-thonpson-santos/" target="_blank" class="text-white text-decoration-none">
+                            <strong>Joan Thompson Santos</strong>
+                        </a>
+                    </small>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS (opcional, para alguns componentes) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
