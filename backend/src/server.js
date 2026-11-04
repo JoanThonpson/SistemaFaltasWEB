@@ -67,6 +67,11 @@ app.get('/api/saude', (req, res) => {
 // As rotas do sistema entram aqui (autenticação na Sprint 2, CRUDs na Sprint 3):
 app.use('/api/auth', require('./routes/auth'));
 
+//--------------------  teste protegido (apenas para demonstração) --------------------
+//app.get('/api/teste-protegido', require('./middlewares/auth'), (req, res) => {
+//  res.json({ mensagem: 'Acesso liberado!', usuario: req.usuario.nome });
+//});
+
 // ---------- frontend ----------
 if (fs.existsSync(PASTA_FRONTEND)) {
   app.get('/', (req, res) => res.redirect('/login.html'));

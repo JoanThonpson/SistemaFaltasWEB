@@ -123,7 +123,7 @@ function resumo() {
     ambiente: config.ambiente,
     porta: config.porta,
     fusoHorario: config.fusoHorario,
-    cookieSeguro: config.cookieSeguro,
+    httpsObrigatorio: config.cookieSeguro,
     jwtExpiraEm: config.jwt.expiraEm,
     banco: config.banco.caminho,
     retencaoBackups: config.banco.retencaoBackups,
