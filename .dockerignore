@@ -1,0 +1,24 @@
+# Git e editores
+
+.git
+.gitignore
+.vscode
+.idea
+
+# Dependências da sua máquina (a imagem instala as dela)
+
+\*\*/node_modules
+
+# Segredos e dados: NUNCA entram na imagem
+
+**/.env\*
+backend/data
+**/_.db
+\*\*/_.db-shm \*_/_.db-wal
+
+# Não são necessários para rodar
+
+backend/test
+docs
+index.html
+README.md \*_/_.log

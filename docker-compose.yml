@@ -1,0 +1,24 @@
+name: registro-faltas
+
+services:
+  faltas:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: registro-faltas:latest
+    container_name: registro-faltas
+    restart: unless-stopped
+    init: true
+    ports:
+      - "3000:3000"
+    env_file:
+      - backend/.env
+    environment:
+      NODE_ENV: production   # sobrepõe o "development" do seu .env local
+      PORT: "3000"
+    volumes:
+      - dados:/app/backend/data
+    stop_grace_period: 15s
+
+volumes:
+  dados:
